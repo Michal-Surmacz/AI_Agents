@@ -1,4 +1,4 @@
-# AI Chat Agent with Enhanced Functionality
+# ReAct Agent with Chat
 
 This script sets up a chat-based AI agent using LangChain, which integrates several functionalities including search, time retrieval, and note-taking. It utilizes a structured chat agent approach to enhance interaction with users.
 
