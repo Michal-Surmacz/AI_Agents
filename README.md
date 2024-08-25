@@ -2,6 +2,7 @@
 
 This repository is designed for learning how to program AI Agents. It includes various projects that focus on learning and exploring artificial intelligence. More projects will be added in the future.
 
+
 ## 🔍 Key Steps
 
 1. **Load environment variables** to keep API keys secure.
@@ -9,10 +10,12 @@ This repository is designed for learning how to program AI Agents. It includes v
 3. **Get ReAct prompt** for agent logic.
 4. **Configure OpenAI model** for deterministic responses.
 5. **Create and run the agent** to answer queries.
+6. 
 
 ## 🌟 Outcome
 
 This project demonstrates the power of combining LangChain with OpenAI and external tools. I’m excited to explore more with AI agents!
+
 
 ## 🛠️Step-by-Step Code Explanation
 
@@ -73,6 +76,7 @@ python main.py
 ```
 
 This will execute the AI agent with the provided input and display the result in your console.
+
 
 ## 🛠️Step-by-Step Guide Before Run Code 
 ### 1. Install Required Packages
