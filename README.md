@@ -1,81 +1,123 @@
-# AI_Agents
+# AI Chat Agent with Enhanced Functionality
 
-This repository is designed for learning how to program AI Agents. It includes various projects that focus on learning and exploring artificial intelligence. More projects will be added in the future.
-
+This script sets up a chat-based AI agent using LangChain, which integrates several functionalities including search, time retrieval, and note-taking. It utilizes a structured chat agent approach to enhance interaction with users.
 
 ## 🔍 Key Steps
 
 1. **Load environment variables** to keep API keys secure.
-2. **Initialize Tavily Search Tool** to fetch search results.
-3. **Get ReAct prompt** for agent logic.
-4. **Configure OpenAI model** for deterministic responses.
-5. **Create and run the agent** to answer queries.
-6. 
+2. **Define Tools** to implement functions for internet search, time retrieval, and note-taking, and configure them as tools.
+3. **Configure Language Model** to set up a language model for generating responses with specific settings.
+4. **Set Up Memory** to utilize conversation memory to track chat history and maintain context.
+5. **Create and Initialize Agent** to build a structured chat agent and set up its execution environment.
+6. **Run Interaction Loop** to continuously interact with the user, process inputs, and generate responses.
 
 ## 🌟 Outcome
 
-This project demonstrates the power of combining LangChain with OpenAI and external tools. I’m excited to explore more with AI agents!
-
+The script demonstrates how to create an interactive AI chat agent that can perform specific tasks and maintain conversational context, all while managing various tools and functionalities. It showcases the power of combining different components to build a comprehensive assistant.
 
 ## 🛠️Step-by-Step Code Explanation
 
 ### 1. Set Up the Environment
-First, ensure that you have your environment variables set up correctly by loading them using `dotenv`:
+Ensure you load your environment variables to keep API keys secure:
 ```python
 from dotenv import load_dotenv
-
 load_dotenv()
 ```
-This will load the environment variables from a .env file, which is essential for keeping your API keys secure.
+This will read the environment variables from a `.env` file.
 
-### 2. Initialize the Search Tool
-Next, initialize the Tavily Search Tool, which will be used to fetch search results.
+### 2. Define Tools
+Implement the following functions and configure them as tools:
+- `get_current_time`: Returns the current date and time as a string.
+- `search_internet`: Searches the internet and returns information about the first result.
+- `add_note_to_file`: Adds a note to a file named `notes.txt`.
 
 ```python
-from langchain_community.tools.tavily_search import TavilySearchResults
+def get_current_time(_=None):
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-tools = [TavilySearchResults(max_results=1)]
+def search_internet(query):
+    try:
+        return TavilySearchResults(max_results=1)(query)
+    except Exception as e:
+        return f"I could not find any information on that. Error: {str(e)}"
+
+def add_note_to_file(text):
+    filename = 'notes.txt'
+    if os.path.exists(filename):
+        with open(filename, 'a') as file:
+            file.write(text + '\n')
+    else:
+        with open(filename, 'w') as file:
+            file.write(text + '\n')
+    return f"Note added: {text}"
+
+tools = [
+    Tool(name="Search", func=search_internet, description="Useful for when you need to know information about a particular topic."),
+    Tool(name="Time", func=get_current_time, description="Useful for when you need to know the current time."),
+    Tool(name="Note", func=add_note_to_file, description="Useful for when you need to create a note.")
+]
 ```
-Here, `max_results=1` ensures that only one search result is fetched.
+
 
 ### 3. Load the ReAct Prompt
 Pull the ReAct prompt from the LangChain hub to define the logic for the AI agent.
 
 ```python
 from langchain import hub
-prompt = hub.pull("hwchase17/react")
+prompt = hub.pull("hwchase17/structured-chat-agent")
 ```
-This step is crucial as it provides the framework for the agent’s reasoning process.
 
-### 4. Configure the OpenAI Model
-Configure the OpenAI model with a deterministic response by setting the temperature to 0.
+### 4. Configure the Language Model
+Initialize the language model with a deterministic setting:
 ```python
-from langchain_openai import OpenAI
-llm = OpenAI(temperature=0, verbose=True)
+from langchain_openai import ChatOpenAI
+llm = ChatOpenAI(temperature=0, verbose=True)
 ```
-Setting `temperature=0` ensures that the model's responses are deterministic, meaning it will generate the same output for the same input.
 
-### 5. Create and Run the Agent
-Create the AI agent using the create_react_agent function and run it with the AgentExecutor.
+### 5. Set Up Memory
+Set up memory to keep track of conversation history:
 ```python
-from langchain.agents import AgentExecutor, create_react_agent
-agent = create_react_agent(llm, tools, prompt)
-agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+from langchain.memory import ConversationBufferMemory
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 ```
-Finally, invoke the agent to respond to a specific query.
+
+### 6. Create and Initialize the Agent
+Create the structured chat agent and set up its execution environment:
+
 ```python
-agent_executor.invoke({"input": "What is Ai Agent?"})
+from langchain.agents import AgentExecutor, create_structured_chat_agent
+
+agent = create_structured_chat_agent(llm=llm, tools=tools, prompt=prompt)
+agent_executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True, memory=memory, handle_parsing_errors=True)
 ```
-The agent will process the input, fetch relevant information using the search tool, and provide an informed response based on the ReAct prompt.
-
-### 6. Running the Code
-To run the code, execute the main.py file. Ensure all dependencies are installed, and the .env file is correctly configured with your API keys. Instruction what to do before run code is below. 
-
-```bash
-python main.py
+Add an initial system message to the memory:
+```
+from langchain_core.messages import SystemMessage
+initial_message = "You are an AI assistant that can provide helpful, detailed and comprehensive answers using available tools. You should always create notes after giving the response."
+memory.chat_memory.add_message(SystemMessage(content=initial_message))
 ```
 
-This will execute the AI agent with the provided input and display the result in your console.
+### 7. Run Interaction Loop
+Implement a loop to continuously interact with the user:
+```python
+while True:
+    user_input = input("User: ")
+    if user_input.lower() == "exit":
+        print("Exiting the chat. Goodbye!")
+        break
+
+    memory.chat_memory.add_message(HumanMessage(content=user_input))
+
+    try:
+        response = agent_executor.invoke({"input": user_input})
+        response_text = response["output"]
+    except Exception as e:
+        response_text = f"An error occurred: {str(e)}"
+
+    print("Bot:", response_text)
+
+    memory.chat_memory.add_message(AIMessage(content=response_text))
+```
 
 
 ## 🛠️Step-by-Step Guide Before Run Code 
@@ -92,23 +134,21 @@ OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 ### 3. Verify Hub Pull
-Ensure that the `hub.pull("hwchase17/react")` call is valid. This will pull the React agent configuration from LangChain's hub. Confirm that this is the correct identifier and that the resource exists.
+Ensure that the `hub.pull("hwchase17/structured-chat-agent")` call is valid. This will pull the React agent configuration from LangChain's hub. Confirm that this is the correct identifier and that the resource exists.
 
 ### 4. Check the Availability of Tools
 Confirm that `TavilySearchResults` is correctly implemented and that its `max_results` parameter is set appropriately for your use case.
 
-### 5. Validate Your Prompt
-Ensure that the prompt used with `create_react_agent` is valid and fits the expected format. The prompt should be in a format that the agent can understand and use.
+### 5. Validate Memory Configuration
+Ensure that `ConversationBufferMemory` is set up correctly to maintain conversation context.
 
-### 6. Verify `AgentExecutor` Invocation 
-The `invoke` method should be called with an appropriate input format that matches what the agent expects. Ensure that the input dictionary structure is correct and that the key `"input"` is what the agent expects.
 
 ### Here's a checklist of what you need to prepare:
 - `.env` file with necessary API keys.
 - Installed packages (`langchain`, `langchain_community`, `langchain_openai`, `python-dotenv`).
 - Valid `hub.pull` reference.
-- Correctly configured `TavilySearchResults` tool.
-- Accurate prompt format for `create_react_agent`.
+- Correctly implemented and configured tools.
+- Properly configured memory management.
 - Optional: Error handling/logging mechanism.
 
 After verifying these, you should be able to run the code successfully.
