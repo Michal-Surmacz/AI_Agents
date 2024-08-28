@@ -38,7 +38,7 @@ This project sets up a web-based chat application using Flask, integrated with L
 
 ## 🌟 Outcome
 
-The web application allows users to interact with an AI chatbot via a simple web interface. It maintains context between interactions and processes user questions to provide intelligent responses. This setup demonstrates integrating a language model into a Flask application to create an interactive and context-aware chatbot experience. Additionally, LLMs is installed locally. 
+The web application allows users to interact with an AI chatbot via a simple web interface. It maintains context between interactions and processes user questions to provide intelligent responses. This setup demonstrates integrating a language model into a Flask application to create an interactive and context-aware chatbot experience. Additionally, LLM is installed locally. 
 
 ## 🛠️Step-by-Step Code Explanation (main.py file) -> backend 
 
