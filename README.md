@@ -10,7 +10,6 @@ This repository is designed for learning how to program AI Agents. It includes v
 3. **Get ReAct prompt** for agent logic.
 4. **Configure OpenAI model** for deterministic responses.
 5. **Create and run the agent** to answer queries.
-6. 
 
 ## 🌟 Outcome
 
